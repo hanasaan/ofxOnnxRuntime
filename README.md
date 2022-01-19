@@ -1,5 +1,5 @@
 # ofxOnnxRuntime
-[OnnxRuntime](https://github.com/microsoft/onnxruntime) tiny wrapper for openFrameworks
+[ONNX Runtime](https://github.com/microsoft/onnxruntime) tiny wrapper for openFrameworks
 
 ## Tested environment
 - MacBookPro 2018 Intel + macOS Catalina
