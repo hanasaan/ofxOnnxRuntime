@@ -17,7 +17,7 @@
         - Right click your project on `Solution Explorer` pane, and then select `Manage NuGet Packages...`.
         - From `Browse` tab, search `Microsoft.ML.OnnxRuntime` (CPU) or `Microsoft.ML.OnnxRuntime.Gpu` (GPU) and install it.
     2. DLL direct download
-        - You can download prebuilt DLLs from (here)[https://github.com/microsoft/onnxruntime/releases].
+        - You can download prebuilt DLLs from [here](https://github.com/microsoft/onnxruntime/releases).
         - Unzip downloaded `onnxruntime-win-x64-(gpu-)1.10.0.zip` and locate files on `libs\onnxruntime\lib\vs\x64\` .
         - Generate a project using ProjectGenerator, then all libs are linked correctly and all dlls are copied to `bin`.
 
