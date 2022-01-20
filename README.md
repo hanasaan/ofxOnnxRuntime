@@ -3,7 +3,6 @@
 
 !['test'](screenshot.png)
 
-
 ## Installation
 - macOS
     - copy `libonnxruntime.1.10.0.dylib` to `/usr/local/lib` 
@@ -27,3 +26,6 @@
 
 ## ToDo
 - check M1 Mac (should work), Linux CPU&GPU
+
+## Reference Implementation
+- I heavily referred [Lite.AI.ToolKit](https://github.com/DefTruth/lite.ai.toolkit) implementation.

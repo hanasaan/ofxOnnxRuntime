@@ -16,81 +16,10 @@ template <typename T> static void softmax(T &input) {
 	}
 }
 
-// This is the structure to interface with the MNIST model
-// After instantiation, set the input_image_ data to be the 28x28 pixel image of
-// the number to recognize Then call Run() to fill in the results_ data with the
-// probabilities of each result_ holds the index with highest probability (aka
-// the number the model thinks is in the image)
-struct MNIST {
-	MNIST() {
-
-#ifdef _MSC_VER
-		Ort::SessionOptions sf;
-
-#define USE_CUDA
-#define USE_TENSORRT
-
-#ifdef USE_CUDA
-#ifdef USE_TENSORRT
-		sf.AppendExecutionProvider_TensorRT(OrtTensorRTProviderOptions{ 0 });
-#endif
-		sf.AppendExecutionProvider_CUDA(OrtCUDAProviderOptions());
-#endif
-
-		string path = ofToDataPath("mnist-8.onnx", true);
-		std::wstring widestr = std::wstring(path.begin(), path.end());
-		session_ = make_shared<Ort::Session>(env, widestr.c_str(), sf);
-#else
-		// OSX
-		session_ = make_shared<Ort::Session>(
-			env, ofToDataPath("mnist-8.onnx", true).c_str(),
-			Ort::SessionOptions{ nullptr });
-#endif
-
-		auto memory_info =
-			Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
-		input_tensor_ = Ort::Value::CreateTensor<float>(
-			memory_info, input_image_.data(), input_image_.size(),
-			input_shape_.data(), input_shape_.size());
-		output_tensor_ = Ort::Value::CreateTensor<float>(
-			memory_info, results_.data(), results_.size(), output_shape_.data(),
-			output_shape_.size());
-	}
-
-	std::ptrdiff_t Run() {
-		const char *input_names[] = { "Input3" };
-		const char *output_names[] = { "Plus214_Output_0" };
-
-		session_->Run(Ort::RunOptions{ nullptr }, input_names, &input_tensor_, 1,
-			output_names, &output_tensor_, 1);
-		softmax(results_);
-		result_ = std::distance(results_.begin(),
-			std::max_element(results_.begin(), results_.end()));
-		return result_;
-	}
-
-	static constexpr const int width_ = 28;
-	static constexpr const int height_ = 28;
-
-	std::array<float, width_ * height_> input_image_{};
-	std::array<float, 10> results_{};
-	int64_t result_{ 0 };
-
-private:
-	Ort::Env env;
-	shared_ptr<Ort::Session>
-		session_; // {env, (const wchar_t*)ofToDataPath("mnist-8.onnx",
-				  // true).c_str(), Ort::SessionOptions{ nullptr }};
-
-	Ort::Value input_tensor_{ nullptr };
-	std::array<int64_t, 4> input_shape_{ 1, 1, width_, height_ };
-
-	Ort::Value output_tensor_{ nullptr };
-	std::array<int64_t, 2> output_shape_{ 1, 10 };
-};
-
 class ofApp : public ofBaseApp {
-	shared_ptr<MNIST> mnist;
+	ofxOnnxRuntime::BaseHandler mnist2;
+	vector<float> mnist_result;
+
 	ofFbo fbo_render;
 	ofFbo fbo_classification;
 	ofFloatPixels pix;
@@ -102,8 +31,11 @@ public:
 		ofSetVerticalSync(true);
 		ofSetFrameRate(60);
 
-		mnist = make_shared<MNIST>();
-
+#ifdef _MSC_VER
+		mnist2.setup("mnist-8.onnx", ofxOnnxRuntime::BaseSetting{ ofxOnnxRuntime::INFER_TENSORRT });
+#else
+		mnist2.setup("mnist-8.onnx");
+#endif
 		fbo_render.allocate(280, 280, GL_RGB, 0);
 		fbo_render.getTexture().setTextureMinMagFilter(GL_NEAREST, GL_NEAREST);
 		fbo_render.begin();
@@ -111,9 +43,13 @@ public:
 		fbo_render.end();
 		fbo_classification.allocate(28, 28, GL_R32F, 0);
 
-		pix.setFromExternalPixels(&mnist->input_image_.front(), 28, 28, 1);
+		//pix.setFromExternalPixels(&mnist->input_image_.front(), 28, 28, 1);
+		pix.setFromExternalPixels(mnist2.getInputTensorData(), 28, 28, 1);
 
-		mnist->Run();
+		//mnist->Run();
+		mnist2.run();
+
+		mnist_result.resize(10);
 	}
 
 	void update() {
@@ -136,7 +72,10 @@ public:
 				fbo_classification.getHeight());
 			fbo_classification.end();
 			fbo_classification.readToPixels(pix);
-			mnist->Run();
+			auto& result = mnist2.run();
+			const float *output_ptr = result.GetTensorMutableData<float>();
+			memcpy(mnist_result.data(), output_ptr, mnist_result.size() * sizeof(float));
+			softmax(mnist_result);
 			prev_pt = pt;
 			prev_pressed = true;
 		}
@@ -152,14 +91,15 @@ public:
 		fbo_classification.draw(0, 340);
 
 		// render result
+		auto& result = mnist_result;
 		for (int i = 0; i < 10; ++i) {
 			stringstream ss;
 			ss << i << ":" << std::fixed << std::setprecision(3)
-				<< mnist->results_[i];
+				<< mnist_result[i];
 			ofDrawBitmapString(ss.str(), 300, 70 + i * 30);
 			ofPushStyle();
 			ofSetColor(0, 255, 0);
-			ofDrawRectangle(360.0, 55 + i * 30, mnist->results_[i] * 300.0, 20);
+			ofDrawRectangle(360.0, 55 + i * 30, mnist_result[i] * 300.0, 20);
 			ofPopStyle();
 		}
 
