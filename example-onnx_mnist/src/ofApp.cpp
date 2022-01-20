@@ -47,9 +47,12 @@ public:
 		pix.setFromExternalPixels(mnist2.getInputTensorData(), 28, 28, 1);
 
 		//mnist->Run();
-		mnist2.run();
+        auto& result = mnist2.run();
+        const float *output_ptr = result.GetTensorMutableData<float>();
 
 		mnist_result.resize(10);
+        
+        cerr << "API : " << Ort::Global<void>::api_ << endl;
 	}
 
 	void update() {

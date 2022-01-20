@@ -66,13 +66,16 @@ namespace ofxOnnxRuntime
 		// 4. output names & output dimms
 		num_outputs = ort_session->GetOutputCount();
 		output_node_names.resize(num_outputs);
+        output_node_dims.clear();
+        output_values.clear();
 		for (unsigned int i = 0; i < num_outputs; ++i)
 		{
 			output_node_names[i] = ort_session->GetOutputName(i, allocator);
 			Ort::TypeInfo output_type_info = ort_session->GetOutputTypeInfo(i);
 			auto output_tensor_info = output_type_info.GetTensorTypeAndShapeInfo();
 			auto output_dims = output_tensor_info.GetShape();
-			output_node_dims.push_back(output_dims);
+			output_node_dims.emplace_back(output_dims);
+            output_values.emplace_back(nullptr);
 		}
 	}
 
@@ -81,14 +84,14 @@ namespace ofxOnnxRuntime
 		auto input_tensor_ = Ort::Value::CreateTensor<float>(
 			memory_info_handler, input_values_handler.data(), input_tensor_size,
 			input_node_dims.data(), input_node_dims.size());
-		auto result = ort_session->Run(Ort::RunOptions{ nullptr }, input_node_names.data(), &input_tensor_, input_node_names.size(),
-			output_node_names.data(), output_node_names.size());
+		ort_session->Run(Ort::RunOptions{ nullptr }, input_node_names.data(), &input_tensor_, input_node_names.size(),
+			output_node_names.data(), output_values.data(), output_node_names.size());
 
-		if (result.size() == 1) {
-			return result.front();
+		if (output_values.size() == 1) {
+			return output_values.at(0);
 		}
 		else {
-			return dummy_tensor_;
+			return dummy_tensor;
 		}
 	}
 }
