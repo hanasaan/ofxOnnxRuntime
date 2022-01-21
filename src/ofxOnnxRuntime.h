@@ -37,7 +37,7 @@ namespace ofxOnnxRuntime
 		std::vector<int64_t> input_node_dims; // 1 input only.
 		std::size_t input_tensor_size = 1;
 		std::vector<float> input_values_handler;
-		Ort::MemoryInfo memory_info_handler = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
+		Ort::MemoryInfo memory_info_handler = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
 		std::vector<const char *> output_node_names;
 		std::vector<std::vector<int64_t>> output_node_dims; // >=1 outputs
         std::vector<Ort::Value> output_values;
