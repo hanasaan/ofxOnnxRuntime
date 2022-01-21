@@ -20,8 +20,8 @@ namespace ofxOnnxRuntime
 	class BaseHandler
 	{
 	public:
-        BaseHandler() {}
-        
+		BaseHandler() {}
+
 		void setup(const std::string& onnx_path, const BaseSetting& base_setting = BaseSetting{ INFER_CPU, 0 });
 		void setup2(const std::string& onnx_path, const Ort::SessionOptions& session_options);
 
@@ -40,8 +40,8 @@ namespace ofxOnnxRuntime
 		Ort::MemoryInfo memory_info_handler = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
 		std::vector<const char *> output_node_names;
 		std::vector<std::vector<int64_t>> output_node_dims; // >=1 outputs
-        std::vector<Ort::Value> output_values;
-        Ort::Value dummy_tensor{nullptr};
+		std::vector<Ort::Value> output_values;
+		Ort::Value dummy_tensor{ nullptr };
 		int num_outputs = 1;
 	};
 }

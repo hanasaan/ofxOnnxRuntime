@@ -48,12 +48,12 @@ namespace ofxOnnxRuntime
 #endif
 
 		Ort::AllocatorWithDefaultOptions allocator;
-		
+
 		// 2. input name & input dims
 		auto* input_name = ort_session->GetInputName(0, allocator);
 		input_node_names.resize(1);
 		input_node_names[0] = input_name;
-		
+
 		// 3. type info.
 		Ort::TypeInfo type_info = ort_session->GetInputTypeInfo(0);
 		auto tensor_info = type_info.GetTensorTypeAndShapeInfo();
@@ -66,8 +66,8 @@ namespace ofxOnnxRuntime
 		// 4. output names & output dimms
 		num_outputs = ort_session->GetOutputCount();
 		output_node_names.resize(num_outputs);
-        output_node_dims.clear();
-        output_values.clear();
+		output_node_dims.clear();
+		output_values.clear();
 		for (unsigned int i = 0; i < num_outputs; ++i)
 		{
 			output_node_names[i] = ort_session->GetOutputName(i, allocator);
@@ -75,7 +75,7 @@ namespace ofxOnnxRuntime
 			auto output_tensor_info = output_type_info.GetTensorTypeAndShapeInfo();
 			auto output_dims = output_tensor_info.GetShape();
 			output_node_dims.emplace_back(output_dims);
-            output_values.emplace_back(nullptr);
+			output_values.emplace_back(nullptr);
 		}
 	}
 
